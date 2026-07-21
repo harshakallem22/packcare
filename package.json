@@ -1,0 +1,18 @@
+{
+  "name": "packcare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Real-time multi-caregiver pet-care app that prevents safety-critical double-dosing.",
+  "scripts": {
+    "up": "docker compose up --build",
+    "down": "docker compose down",
+    "dev:care-log": "npm --prefix care-log run dev",
+    "dev:gateway": "npm --prefix gateway run dev",
+    "dev:scheduler": "npm --prefix scheduler run dev",
+    "dev:web": "npm --prefix web run dev",
+    "build": "npm --prefix care-log run build && npm --prefix gateway run build && npm --prefix scheduler run build",
+    "typecheck": "npm --prefix care-log run typecheck && npm --prefix gateway run typecheck && npm --prefix scheduler run typecheck",
+    "test": "npm --prefix care-log test",
+    "install:all": "npm --prefix care-log install && npm --prefix gateway install && npm --prefix scheduler install && npm --prefix web install"
+  }
+}
