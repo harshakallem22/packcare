@@ -34,3 +34,6 @@ docs/
 
 # Local Claude Code settings (not published)
 .claude/
+
+# Portfolio blog draft (local-only, never publish to repo)
+BLOG.md
