@@ -1,0 +1,58 @@
+services:
+  mongo:
+    image: mongo:7.0
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports: ["27017:27017"]
+    volumes: ["mongodata:/data/db"]
+    healthcheck:
+      # Initiate the single-node replica set so transactions + change streams work.
+      # Reports "healthy" only once this node is PRIMARY (myState === 1), so dependents
+      # never start against a not-yet-elected replica set. The member host MUST be
+      # "mongo:27017" - the address other containers use - or driver discovery breaks.
+      test: >
+        echo "try { var s = rs.status(); quit(s.myState === 1 ? 0 : 1) }
+        catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }); quit(1) }"
+        | mongosh --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+
+  gateway:
+    build: ./gateway
+    env_file: .env
+    ports: ["4000:4000"]
+    depends_on:
+      mongo: { condition: service_healthy }
+      redis: { condition: service_started }
+      care-log: { condition: service_started }
+
+  care-log:
+    build: ./care-log
+    env_file: .env
+    # Host port 5005 (5000 is taken by macOS AirPlay Receiver); inside the network it's
+    # still 5000, which is what CARE_LOG_URL points at.
+    ports: ["5005:5000"]
+    depends_on:
+      mongo: { condition: service_healthy }
+
+  scheduler:
+    build: ./scheduler
+    env_file: .env
+    ports: ["5100:5100"]
+    depends_on:
+      mongo: { condition: service_healthy }
+      gateway: { condition: service_started }
+
+  web:
+    build: ./web
+    env_file: .env
+    ports: ["5173:5173"]
+    depends_on: [gateway]
+
+volumes:
+  mongodata:
