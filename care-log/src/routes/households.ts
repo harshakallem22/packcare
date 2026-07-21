@@ -38,7 +38,12 @@ householdsRouter.post('/households/join', async (req, res) => {
 
   const { inviteCode, userId } = parsed.data;
   const household = await Household.findOne({ inviteCode: inviteCode.toUpperCase() });
-  if (!household) return res.status(404).json({ error: 'invalid invite code' });
+  if (!household) {
+    return res.status(404).json({
+      error: 'invalid-invite-code',
+      message: "That invite code isn't valid. Please double-check it and try again.",
+    });
+  }
 
   try {
     await Membership.create({ householdId: household._id, userId: new Types.ObjectId(userId), role: 'caregiver' });
